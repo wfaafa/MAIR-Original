@@ -1,0 +1,56 @@
+name: test_MaIR_CT_SR_x2
+model_type: MambaIRModel
+scale: 2
+num_gpu: 1
+manual_seed: 10
+
+datasets:
+  test_1:
+    name: CTSR_test
+    type: PairedImageDataset
+    task: ct_projection
+    ct_min: 3958.0
+    ct_max: 13987.0
+    dataroot_gt: /root/autodl-tmp/MaIR/ProjectionDataset/test/hr_clean
+    dataroot_lq: /root/autodl-tmp/MaIR/ProjectionDataset/test/lr_clean
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+network_g:
+  type: MaIR
+  upscale: 2
+  in_chans: 1
+  img_range: 1.
+  d_state: 16
+  depths: [6, 6, 6, 6, 6, 6]
+  embed_dim: 180
+  ssm_ratio: 2.0
+  mlp_ratio: 2.5
+  upsampler: 'pixelshuffle'
+  resi_connection: '1conv'
+  img_size: 64
+  dynamic_ids: False
+  batch_size: 1
+  scan_len: 8
+
+path:
+  pretrain_network_g: /root/autodl-tmp/MaIR/experiments/train_MaIR_CT_SR_x2/models/net_g_latest.pth
+  strict_load_g: true
+
+val:
+  save_img: true
+  suffix: ~
+  metrics:
+    psnr:
+      type: calculate_psnr
+      crop_border: 2
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 2
+      test_y_channel: false
+
+dist_params:
+  backend: nccl
+  port: 29500

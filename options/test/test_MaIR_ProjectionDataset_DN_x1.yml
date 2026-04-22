@@ -1,0 +1,54 @@
+# ProjectionDataset denoising test: lr_noisy -> lr_clean
+name: test_MaIR_ProjectionDataset_DN_x1
+model_type: MambaIRModel
+scale: 1
+num_gpu: 1
+manual_seed: 10
+
+datasets:
+  test_1:
+    name: ProjectionDataset_test_DN
+    type: PairedImageDataset
+    task: projection_raw
+    dataroot_gt: "/root/autodl-tmp/MaIR/ProjectionDataset/test/lr_clean"
+    dataroot_lq: "/root/autodl-tmp/MaIR/ProjectionDataset/test/lr_noisy"
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+network_g:
+  type: MaIR
+  upscale: 1
+  in_chans: 1
+  img_range: 1.
+  d_state: 16
+  depths: [6, 6, 6, 6, 6, 6]
+  embed_dim: 180
+  ssm_ratio: 1.3
+  mlp_ratio: 2.0
+  upsampler: ~
+  resi_connection: '1conv'
+  img_size: 128
+  dynamic_ids: false
+  batch_size: 1
+  scan_len: 4
+
+path:
+  pretrain_network_g: "experiments/train_MaIR_ProjectionDataset_DN_x1/models/net_g_290000.pth"
+  strict_load_g: true
+
+val:
+  save_img: true
+  save_img_as_tif: true
+  keep_original_name: true
+  suffix: ~
+  metrics_on_raw: true
+  metrics:
+    psnr:
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false
